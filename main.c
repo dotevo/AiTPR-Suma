@@ -131,34 +131,45 @@ int main(int argc, char ** argv) {
     random = next; // tymczasowo
 
     int i=0;
+
+    //----------Char to Number-------------
+    numbersCount	=argc-1;
+    numbers         	=(int*)malloc(sizeof(int)*(argc-1));
+
+    //ustaw z argumentow wartosci ciagu
+    for(i=0;i<argc-1;i++){
+ 	 numbers[i]=atoi(argv[i+1]);               
+         numbersSum+=numbers[i];
+    }
+
+    if(numbersCount%2!=0){
+        if(rank==0)
+	    printf("DEBIL! jest bledny ciag!\n");
+        goto clear;
+    }
+
+
     if(rank == 0) // 0 inicjalizuje zadanie
     {
-        //----------Char to Number-------------
-        numbersCount=argc-1;
-        numbers		=(int*)malloc(sizeof(int)*(argc-1));
-        int *firstTask	=(int*)malloc(sizeof(int)*(argc-1));
-
-        for(i=0;i<argc-1;i++){
-                numbers[i]=atoi(argv[i+1]);
-                firstTask[i]=-1;
-                numbersSum+=numbers[i];
-        }
-
+	//wyswietl ciag
         printf("Ciag: ");
         for(i=0;i<numbersCount;i++)
                 printf("%d,",numbers[i]);
+        printf("\n SUM: %d COUNT %d\n",numbersSum,numbersCount);
 
+
+	//Pierwsze zadanie (wartosci)
+	int *firstTask  =(int*)malloc(sizeof(int)*(argc-1));
+        for(i=0;i<numbersCount;i++){                
+                firstTask[i]=-1;               
+        }
+
+       
         //Stworz pierwsze zadanie
         Item *fitem=(Item*)malloc(sizeof(Item));
         fitem->next=0;
         fitem->val=firstTask;
         head=listAddItemOnBegin(fitem, head);
-        printf("\n SUM: %d COUNT %d\n",numbersSum,numbersCount);
-        if(numbersCount%2!=0){
-                printf("DEBIL! jest bledny ciag!\n");
-                return 0;
-        }
-        //------------------------------------
     }
 
     finished = 0;
@@ -338,6 +349,6 @@ int main(int argc, char ** argv) {
 
     printf("rank: %d finished!\n", rank);
     
-    MPI_Finalize();
+clear: MPI_Finalize();
     return 0;
 }
