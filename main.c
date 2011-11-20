@@ -264,15 +264,12 @@ int main(int argc, char ** argv) {
                     }
                     else if(status.MPI_TAG == TASKS_VALUES) // zadania
                     {                        
-                        // odebrac zadania (w liczbie wczesniej ustalonej) i dodac do listy
-			printf("Odbieram!\n");
-			
+                        // odebrac zadania (w liczbie wczesniej ustalonej) i dodac do listy			
 			int *tasksMSG=(int*)malloc(sizeof(int)*tasksNum * numbersCount);
                         MPI_Recv(tasksMSG, tasksNum * numbersCount, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);                        
                         head = tasksToItems(tasksMSG, tasksNum);
-			printf("dodalem :D!\n");
-//			free(tasksMSG);
-			printf("zwalniam!\n");
+			free(tasksMSG);
+			received = 1;
                     }
                     else if(status.MPI_TAG == FINISH) // praca skonczona
                     {
@@ -350,9 +347,7 @@ int main(int argc, char ** argv) {
 	
         // na koniec zawsze sprawdza, czy ktos czegos nie chcial
         waiting = 0;
-	printf("1a");
 	MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &waiting, &status); // nieblokujace
-	printf("1b");
         if(waiting == 1)
         {
 	    MPI_Recv(&msg, 1, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
@@ -370,9 +365,9 @@ int main(int argc, char ** argv) {
 			printf("%d,",tasksToSend[ii]);
 		}
 */
-		printf("2a");
-                MPI_Isend(&tasksToSendNum, 1, MPI_INT, status.MPI_SOURCE, TASKS_NUMBER, MPI_COMM_WORLD, &request);
-		printf("2b");
+
+		MPI_Isend(&tasksToSendNum, 1, MPI_INT, status.MPI_SOURCE, TASKS_NUMBER, MPI_COMM_WORLD, &request);
+
 
                 // moze poczekac, zeby byla pewnosc, ze tamten dostanie najpierw liczbe zadan a potem te zadania?
                 // wyslij te zadania
