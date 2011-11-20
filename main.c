@@ -111,6 +111,64 @@ void tokenService(int rcvToken, int tasksNum) {
     }
 }
 
+
+
+
+//rturn array of ints
+int* getHalfTasks(Item** head,int *count){
+        //Trzymaj glowe
+        Item*tmp=*head;
+
+        *count=listCount(*head);
+
+        //Gdy nie mam czym sie podzielic
+        if(*count<=1)
+                return 0;
+
+
+        *count=(*count)/2;
+
+        int *values=(int*)malloc(sizeof(int)*(*count));
+
+        int i=0;
+        while( *head!=0 && (*head)->next!=0 && *count>i ){
+                //wez zadanie o nr i+1
+                Item* item=listTakeAt(head,i+1);
+                if(item!=0){
+                        //kopiuj
+                        *(values+i*numbersCount)=*(item->val);
+                        free(item->val);
+                        free(item);
+                }
+                i++;
+        }
+//        printf("getHalf: COUNT %d I %d\n",*count,i);
+        return values;
+}
+
+//Return new head
+Item* tasksToItems(int* data,int count){
+        Item* head=(Item*)malloc(sizeof(Item));
+        head->next=0;
+        head->val=data;
+
+        int a=1;
+        for(a=1;a<count;a++){
+                Item* item=(Item*)malloc(sizeof(Item));
+                item->next=0;
+                item->val=(data+numbersCount*a);
+                head=listAddItemOnBegin(item, head);
+        }
+
+        return head;
+}
+
+
+
+
+
+
+
 int main(int argc, char ** argv) {
     int random; // proces ktory bedzie pytal o zadanie
     int tasksNum;
