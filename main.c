@@ -119,8 +119,7 @@ int* getHalfTasks(Item** head,int *count){
                 return 0;
 
         *count=(*count)/2;
-        int *values=(int*)malloc(sizeof(int)*(*count));
-
+        int *values=(int*)malloc(sizeof(int)*(*count)*numbersCount);
         int i=0;
         while( *head!=0 && (*head)->next!=0 && *count>i ){
                 //wez zadanie o nr i+1
@@ -129,9 +128,9 @@ int* getHalfTasks(Item** head,int *count){
                         //kopiuj
                         int j=0;
                         for(j=0;j<numbersCount;j++)
-                                *(values+i*numbersCount+j)=item->val[j];
+                                *(values+i*numbersCount+j)=item->val[j];			
                         free(item->val);
-                        free(item);
+                        free(item);			
                 }
                 i++;
         }
@@ -141,15 +140,17 @@ int* getHalfTasks(Item** head,int *count){
 
 //Return new head
 Item* tasksToItems(int* data,int count){
-        Item* head=(Item*)malloc(sizeof(Item));
-        head->next=0;
-        head->val=data;
+        Item* head=0;
 
-        int a=1;
-        for(a=1;a<count;a++){
+        int a=0;
+        for(a=0;a<count;a++){
                 Item* item=(Item*)malloc(sizeof(Item));
                 item->next=0;
-                item->val=(data+numbersCount*a);
+                item->val=(int*)malloc(sizeof(int)*numbersCount);
+		int w=0;
+		for(;w<numbersCount;w++){
+			item->val[w]=data[numbersCount*a+w];
+		}
                 head=listAddItemOnBegin(item, head);
         }
 
@@ -225,12 +226,13 @@ int main(int argc, char ** argv) {
         {
 	    printf("%d tasks request from %d.\n", rank, random);
             int tmp = 1; // cokolwiek - tresc nie jest wazna, tylko tag
-            MPI_Isend(&tmp, 1, MPI_INT, random, TASKS_REQUEST, MPI_COMM_WORLD, &status);
+            MPI_Isend( &tmp, 1, MPI_INT, random, TASKS_REQUEST, MPI_COMM_WORLD, &request);
 	    int received = 0;
             while(received != 1) // nasluchuje, az dostanie to na co czeka (liczbe zadan)
 	    {
 		MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status); // blokujace
 		MPI_Recv(&msg, 1, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+		printf("slucham :(\n");
                 // po tagu sprawdza co dostal
                 if(status.MPI_TAG == TASKS_NUMBER) // liczba zadan jakie dostanie
 		{
@@ -256,17 +258,21 @@ int main(int argc, char ** argv) {
                     MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status); // blokujace
                     // po tagu sprawdza co dostal
                     if(status.MPI_TAG == TOKEN) // token
-                    {
+                    {			
                         MPI_Recv(&msg, 1, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                         tokenService(msg, tasksNum);
                     }
                     else if(status.MPI_TAG == TASKS_VALUES) // zadania
-                    {
-                        // TODO:
+                    {                        
                         // odebrac zadania (w liczbie wczesniej ustalonej) i dodac do listy
-                        MPI_Recv(&msg, tasksNum * numbersCount, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                        
-                        head = tasksToItems(&msg, tasksNum);
+			printf("Odbieram!\n");
+			
+			int *tasksMSG=(int*)malloc(sizeof(int)*tasksNum * numbersCount);
+                        MPI_Recv(tasksMSG, tasksNum * numbersCount, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);                        
+                        head = tasksToItems(tasksMSG, tasksNum);
+			printf("dodalem :D!\n");
+//			free(tasksMSG);
+			printf("zwalniam!\n");
                     }
                     else if(status.MPI_TAG == FINISH) // praca skonczona
                     {
@@ -344,7 +350,9 @@ int main(int argc, char ** argv) {
 	
         // na koniec zawsze sprawdza, czy ktos czegos nie chcial
         waiting = 0;
+	printf("1a");
 	MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &waiting, &status); // nieblokujace
+	printf("1b");
         if(waiting == 1)
         {
 	    MPI_Recv(&msg, 1, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
@@ -356,7 +364,15 @@ int main(int argc, char ** argv) {
                 int tasksToSendNum;
                 int * tasksToSend;
                 tasksToSend = getHalfTasks(&head, &tasksToSendNum);
+/* Test wysylania
+		int ii=0;
+		for(;ii<tasksToSendNum*numbersCount;ii++){
+			printf("%d,",tasksToSend[ii]);
+		}
+*/
+		printf("2a");
                 MPI_Isend(&tasksToSendNum, 1, MPI_INT, status.MPI_SOURCE, TASKS_NUMBER, MPI_COMM_WORLD, &request);
+		printf("2b");
 
                 printf("[ ");
                 for(i=0; i<tasksToSendNum*numbersCount; i++)
@@ -375,6 +391,7 @@ int main(int argc, char ** argv) {
                         flag = BLACK;
                     }
                 }
+	//	free(tasksToSend);
 	    }
             else if(status.MPI_TAG == TOKEN) // token
             {
