@@ -42,8 +42,15 @@ int result(int *value){
                 sum	+=numbers[i]*value[i];
                 count	+=value[i];
                 antcount+=value[i]==0?1:0;
+//		if(rank!=0){
+//			printf("V %d\n",value[i]);
+//		}
                 i++;
         }
+
+//	if(rank!=0){
+//		printf("SUM: %d COUNT:%d SUMALL:%d COUNTALL:%d\n",sum,count,numbersSum,numbersCount);
+//	}
 
         //Sprawdzanie czy zakres nie zostal przekroczony
         if( sum*2 > numbersSum || count*2 >numbersCount || antcount*2 >numbersCount)
@@ -232,7 +239,7 @@ int main(int argc, char ** argv) {
 	    {
 		MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status); // blokujace
 		MPI_Recv(&msg, 1, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-		printf("slucham :(\n");
+//		printf("slucham :(\n");
                 // po tagu sprawdza co dostal
                 if(status.MPI_TAG == TASKS_NUMBER) // liczba zadan jakie dostanie
 		{
@@ -267,7 +274,13 @@ int main(int argc, char ** argv) {
                         // odebrac zadania (w liczbie wczesniej ustalonej) i dodac do listy			
 			int *tasksMSG=(int*)malloc(sizeof(int)*tasksNum * numbersCount);
                         MPI_Recv(tasksMSG, tasksNum * numbersCount, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);                        
-                        head = tasksToItems(tasksMSG, tasksNum);
+/* Testowanie odbioru
+			int z=0;
+			printf("\n");
+                        for(z=0;z<numbersCount*tasksNum;z++)
+				printf("R%d,",tasksMSG[z]);
+*/
+			head = tasksToItems(tasksMSG, tasksNum);
 			free(tasksMSG);
 			received = 1;
                     }
@@ -286,7 +299,7 @@ int main(int argc, char ** argv) {
             //
             // Obsluga zadania
             //
-            printf("%d | List count %d \n", rank, listCount(head));
+//            printf("%d | List count %d \n", rank, listCount(head));
             //wez pierwsze zadanie
             item=listTakeAt(&head,0);
             //przetestuj czy jest prawdziwe (nie przekroczono limitow) lub czy nie jest rozwiazaniem
@@ -330,7 +343,7 @@ int main(int argc, char ** argv) {
             }
             else if(n==1){
                     int z=0;
-                    printf("Wynik: ");
+                    printf("%d: Wynik: ",rank);
                     for(z=0;z<numbersCount;z++){
                             if(item->val[z]==1)
                                     printf("%d,",numbers[z]);
@@ -373,13 +386,13 @@ int main(int argc, char ** argv) {
                 // wyslij te zadania
                 printf("%d sends %d tasks to %d.\n", rank, tasksToSendNum, status.MPI_SOURCE);
                 if(tasksToSendNum != 0) {
-                    MPI_Isend(&tasksToSend, tasksToSendNum * numbersCount, MPI_INT, status.MPI_SOURCE, TASKS_VALUES, MPI_COMM_WORLD, &request);
+                    MPI_Isend(tasksToSend, tasksToSendNum * numbersCount, MPI_INT, status.MPI_SOURCE, TASKS_VALUES, MPI_COMM_WORLD, &request);
                     if(status.MPI_SOURCE < rank) // jezeli wyslal do wczesniejszego - ustawia flage na czarna
                     {
                         flag = BLACK;
                     }
                 }
-	//	free(tasksToSend);
+		free(tasksToSend);
 	    }
             else if(status.MPI_TAG == TOKEN) // token
             {
