@@ -111,9 +111,6 @@ void tokenService(int rcvToken, int tasksNum) {
     }
 }
 
-
-
-
 //rturn array of ints
 int* getHalfTasks(Item** head,int *count){
         //Trzymaj glowe
@@ -122,8 +119,10 @@ int* getHalfTasks(Item** head,int *count){
         *count=listCount(*head);
 
         //Gdy nie mam czym sie podzielic
-        if(*count<=1)
-                return 0;
+        if(*count<=1) {
+            *count = 0;
+            return 0;
+        }
 
 
         *count=(*count)/2;
@@ -163,12 +162,6 @@ Item* tasksToItems(int* data,int count){
         return head;
 }
 
-
-
-
-
-
-
 int main(int argc, char ** argv) {
     int random; // proces ktory bedzie pytal o zadanie
     int tasksNum;
@@ -182,11 +175,11 @@ int main(int argc, char ** argv) {
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     
-    tasksNum = rank; // TMP:
+    tasksNum = 0;
     
     next = (rank + 1) % size;
     prev = (rank - 1 + size) % size;
-    random = next; // tymczasowo
+    random = (rank == 0) ? 1 : 0; // tymczasowo
 
     int i=0;
 
@@ -206,7 +199,6 @@ int main(int argc, char ** argv) {
         goto clear;
     }
 
-
     if(rank == 0) // 0 inicjalizuje zadanie
     {
 	//wyswietl ciag
@@ -215,19 +207,19 @@ int main(int argc, char ** argv) {
                 printf("%d,",numbers[i]);
         printf("\n SUM: %d COUNT %d\n",numbersSum,numbersCount);
 
-
 	//Pierwsze zadanie (wartosci)
 	int *firstTask  =(int*)malloc(sizeof(int)*(argc-1));
         for(i=0;i<numbersCount;i++){                
                 firstTask[i]=-1;               
         }
-
        
         //Stworz pierwsze zadanie
         Item *fitem=(Item*)malloc(sizeof(Item));
         fitem->next=0;
         fitem->val=firstTask;
         head=listAddItemOnBegin(fitem, head);
+        
+        tasksNum = 1;
     }
 
     finished = 0;
@@ -237,10 +229,11 @@ int main(int argc, char ** argv) {
     {
         if(tasksNum == 0) // nie ma zadan
         {
+	    printf("%d tasks request from %d.\n", rank, random);
             int tmp = 1; // cokolwiek - tresc nie jest wazna, tylko tag
             MPI_Isend(&tmp, 1, MPI_INT, random, TASKS_REQUEST, MPI_COMM_WORLD, &status);
 	    int received = 0;
-            while(received != 0) // nasluchuje, az dostanie to na co czeka (liczbe zadan)
+            while(received != 1) // nasluchuje, az dostanie to na co czeka (liczbe zadan)
 	    {
 		MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status); // blokujace
 		MPI_Recv(&msg, 1, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
@@ -260,10 +253,11 @@ int main(int argc, char ** argv) {
                     received = 1; // zeby wyskoczyc z petli
 		}
 	    }
+            printf("%d gets %d tasks from %d.\n", rank, tasksNum, random);
             if(tasksNum > 0) // odebral 0 - nie dostanie zadan
             {
                 received = 0;
-                while(received != 0)
+                while(received != 1)
                 {
                     MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status); // blokujace
                     // po tagu sprawdza co dostal
@@ -276,7 +270,9 @@ int main(int argc, char ** argv) {
                     {
                         // TODO:
                         // odebrac zadania (w liczbie wczesniej ustalonej) i dodac do listy
-                        MPI_Recv(&msg, 1, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                        MPI_Recv(&msg, tasksNum * numbersCount, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                        
+                        head = tasksToItems(&msg, tasksNum);
                     }
                     else if(status.MPI_TAG == FINISH) // praca skonczona
                     {
@@ -293,10 +289,7 @@ int main(int argc, char ** argv) {
             //
             // Obsluga zadania
             //
-
-
-
-            printf("List count %d \n",listCount(head));
+            printf("%d | List count %d \n", rank, listCount(head));
             //wez pierwsze zadanie
             item=listTakeAt(&head,0);
             //przetestuj czy jest prawdziwe (nie przekroczono limitow) lub czy nie jest rozwiazaniem
@@ -336,6 +329,7 @@ int main(int argc, char ** argv) {
                     }
                     head=listAddItemOnBegin(a, head);
                     head=listAddItemOnBegin(b, head);
+		    tasksNum += 2;
             }
             else if(n==1){
                     int z=0;
@@ -351,12 +345,6 @@ int main(int argc, char ** argv) {
             free( item->val);
             free( item );
 
-
-
-
-
-
-
 	    tasksNum--;
 	} // end if(taskNum >0)
 	
@@ -369,16 +357,22 @@ int main(int argc, char ** argv) {
             // po tagu sprawdza co dostal
             if(status.MPI_TAG == TASKS_REQUEST) // prosba o zadanie
             {
-                // TODO:
+                printf("%d received request from %d.\n", rank, status.MPI_SOURCE);
                 // wyslij ile zadan chcesz dac
-                MPI_Isend(0, 1, MPI_INT, status.MPI_SOURCE, TASKS_NUMBER, MPI_COMM_WORLD, &request);
-                // TODO:
+                int tasksToSendNum;
+                int * tasksToSend;
+                tasksToSend = getHalfTasks(&head, &tasksToSendNum);
+                MPI_Isend(&tasksToSendNum, 1, MPI_INT, status.MPI_SOURCE, TASKS_NUMBER, MPI_COMM_WORLD, &request);
+
                 // moze poczekac, zeby byla pewnosc, ze tamten dostanie najpierw liczbe zadan a potem te zadania?
                 // wyslij te zadania
-                MPI_Isend(0, 1, MPI_INT, status.MPI_SOURCE, TASKS_VALUES, MPI_COMM_WORLD, &request);
-                if(status.MPI_SOURCE < rank) // jezeli wyslal do wczesniejszego - ustawia flage na czarna
-                {
-                    flag = BLACK;
+                printf("%d sends %d tasks to %d.\n", rank, tasksToSendNum, status.MPI_SOURCE);
+                if(tasksToSendNum != 0) {
+                    MPI_Isend(&tasksToSend, tasksToSendNum * numbersCount, MPI_INT, status.MPI_SOURCE, TASKS_VALUES, MPI_COMM_WORLD, &request);
+                    if(status.MPI_SOURCE < rank) // jezeli wyslal do wczesniejszego - ustawia flage na czarna
+                    {
+                        flag = BLACK;
+                    }
                 }
 	    }
             else if(status.MPI_TAG == TOKEN) // token
