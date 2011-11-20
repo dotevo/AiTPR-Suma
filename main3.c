@@ -19,26 +19,32 @@ int result(int *value){
 	int count	=0;
 	int antcount	=0;
 	//Sumuj az nie trafisz na -1 lub koniec
+//	printf("\n TESTUJE: ");
 	while(i<numbersCount && value[i]!=-1){
 		//printf("n: %d v: %d\n",numbers[i],value[i]);
 		sum	+=numbers[i]*value[i];
 		count	+=value[i];
-		antcount+=value[i]==0?1:0;
+		antcount+=value[i]==0?1:0;		
+//		printf("%d,",value[i]);
 		i++;
 	}
-//	printf("sumka %d liczba %d antyliczba %d i %d\n",sum,count,antcount,i);
+//	printf("\n");
+
+
+//	printf("sumka %d liczba %d:%d antyliczba %d i %d\n",sum,count,numbersCount,antcount,i);
 
 	//Sprawdzanie czy zakres nie zostal przekroczony
-	if( sum*2 > numbersSum || count*2 >numbersCount || antcount*2 >numbersCount)
+	if( sum*2 > numbersSum || count*2 >numbersCount || antcount*2 > numbersCount){
+//		printf("nie ma szans\n");
 		return -1;
+	}
 
 	//Sprawdzanie czy to nie jest wynik
 	if( sum*2 == numbersSum && count *2 == numbersCount)
 		return 1;
 
 	//jesli doszlo do konca, a nie wynik!
-	if( i>=numbersCount-1){
-//		printf("Ejj\n");
+	if( i>=numbersCount){
 		return -1;
 	}
 
@@ -137,7 +143,7 @@ int main( int argc, char **argv ){
 		item=listTakeAt(&head,0);
 		//przetestuj czy jest prawdziwe (nie przekroczono limitow) lub czy nie jest rozwiazaniem
 		int n=result(item->val);
-//		printf("%d\n",n);
+//		printf("LL %d\n",n);
 		if(n==0){
 			//Tworzenie nowych zadan
 			Item *a	=(Item*)malloc(sizeof(Item));
@@ -175,13 +181,13 @@ int main( int argc, char **argv ){
 		}
 		else if(n==1){
 			//Podziel zadania na pol
-			int count=0;
-			printf("%d, %d\n",count,listCount(head));
-			int*a=getHalfTasks(&head,&count);
-			printf("%d, %d\n",count,listCount(head));
-			printf("TaskToItems");
-			Item*head2=tasksToItems(a,count);
-			printf("%d\n \n",listCount(head2));
+//			int count=0;
+//			printf("%d, %d\n",count,listCount(head));
+//			int*a=getHalfTasks(&head,&count);
+//			printf("%d, %d\n",count,listCount(head));
+//			printf("TaskToItems");
+//			Item*head2=tasksToItems(a,count);
+//			printf("%d\n \n",listCount(head2));
 			
 
 			int z=0;
