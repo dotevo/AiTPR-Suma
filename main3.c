@@ -48,7 +48,6 @@ int result(int *value){
 int* getHalfTasks(Item** head,int *count){
         //Trzymaj glowe
         Item*tmp=*head;
-
         *count=listCount(*head);
 
         //Gdy nie mam czym sie podzielic
@@ -58,20 +57,23 @@ int* getHalfTasks(Item** head,int *count){
 
         *count=(*count)/2;
 
-        int *values=(int*)malloc(sizeof(int)*(*count));
+        int *values=(int*)malloc(sizeof(int)*(*count)*numbersCount);
 
         int i=0;        
-        while( *head!=0 && (*head)->next!=0 && *count>i ){
-                //wez zadanie o nr i+1
+        while( (*head)->next !=0 && *count>i ){
+		//wez zadanie o nr i+1
                 Item* item=listTakeAt(head,i+1);
                 if(item!=0){
                         //kopiuj
 			int j=0;
-			for(j=0;j<numbersCount;j++)
+			printf("\nKopiuje:");
+			for(j=0;j<numbersCount;j++){				
 	                        *(values+i*numbersCount+j)=item->val[j];
+			}
+			printf("\n");
                         free(item->val);
                         free(item);
-                }
+                }		
                 i++;
         }
         printf("getHalf: COUNT %d I %d\n",*count,i);
@@ -189,6 +191,7 @@ int main( int argc, char **argv ){
 				}
 				printf("\n");
 			}
+			free(a);
 
 //			printf("%d, %d\n",count,listCount(head));
 //			printf("TaskToItems");
