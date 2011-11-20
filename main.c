@@ -364,6 +364,13 @@ int main(int argc, char ** argv) {
                 tasksToSend = getHalfTasks(&head, &tasksToSendNum);
                 MPI_Isend(&tasksToSendNum, 1, MPI_INT, status.MPI_SOURCE, TASKS_NUMBER, MPI_COMM_WORLD, &request);
 
+                printf("[ ");
+                for(i=0; i<tasksToSendNum*numbersCount; i++)
+                {
+                    printf("%d ", tasksToSend[i]);
+                }
+                printf("]\n");
+
                 // moze poczekac, zeby byla pewnosc, ze tamten dostanie najpierw liczbe zadan a potem te zadania?
                 // wyslij te zadania
                 printf("%d sends %d tasks to %d.\n", rank, tasksToSendNum, status.MPI_SOURCE);
