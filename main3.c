@@ -23,22 +23,21 @@ int result(int *value){
 		//printf("n: %d v: %d\n",numbers[i],value[i]);
 		sum	+=numbers[i]*value[i];
 		count	+=value[i];
-		antcount+=value[i]==0?1:0;
+		antcount+=value[i]==0?1:0;		
 		i++;
 	}
-//	printf("sumka %d liczba %d antyliczba %d i %d\n",sum,count,antcount,i);
 
 	//Sprawdzanie czy zakres nie zostal przekroczony
-	if( sum*2 > numbersSum || count*2 >numbersCount || antcount*2 >numbersCount)
+	if( sum*2 > numbersSum || count*2 >numbersCount || antcount*2 > numbersCount){
 		return -1;
+	}
 
 	//Sprawdzanie czy to nie jest wynik
 	if( sum*2 == numbersSum && count *2 == numbersCount)
 		return 1;
 
 	//jesli doszlo do konca, a nie wynik!
-	if( i>=numbersCount-1){
-//		printf("Ejj\n");
+	if( i>=numbersCount){
 		return -1;
 	}
 
@@ -67,7 +66,9 @@ int* getHalfTasks(Item** head,int *count){
                 Item* item=listTakeAt(head,i+1);
                 if(item!=0){
                         //kopiuj
-                        *(values+i*numbersCount)=*(item->val);
+			int j=0;
+			for(j=0;j<numbersCount;j++)
+	                        *(values+i*numbersCount+j)=item->val[j];
                         free(item->val);
                         free(item);
                 }
@@ -137,7 +138,7 @@ int main( int argc, char **argv ){
 		item=listTakeAt(&head,0);
 		//przetestuj czy jest prawdziwe (nie przekroczono limitow) lub czy nie jest rozwiazaniem
 		int n=result(item->val);
-//		printf("%d\n",n);
+//		printf("LL %d\n",n);
 		if(n==0){
 			//Tworzenie nowych zadan
 			Item *a	=(Item*)malloc(sizeof(Item));
@@ -179,9 +180,20 @@ int main( int argc, char **argv ){
 			printf("%d, %d\n",count,listCount(head));
 			int*a=getHalfTasks(&head,&count);
 			printf("%d, %d\n",count,listCount(head));
-			printf("TaskToItems");
-			Item*head2=tasksToItems(a,count);
-			printf("%d\n \n",listCount(head2));
+			int zzz=0;
+			int zzz2=0;
+			for(zzz=0;zzz<count;zzz++){
+				printf("Zadanie:");
+				for(zzz2=0;zzz2<numbersCount;zzz2++){
+					printf("%d,",a[zzz*count+zzz2]);
+				}
+				printf("\n");
+			}
+
+//			printf("%d, %d\n",count,listCount(head));
+//			printf("TaskToItems");
+//			Item*head2=tasksToItems(a,count);
+//			printf("%d\n \n",listCount(head2));
 			
 
 			int z=0;

@@ -44,7 +44,6 @@ int result(int *value){
                 antcount+=value[i]==0?1:0;
                 i++;
         }
-//	printf("sumka %d liczba %d antyliczba %d i %d\n",sum,count,antcount,i);
 
         //Sprawdzanie czy zakres nie zostal przekroczony
         if( sum*2 > numbersSum || count*2 >numbersCount || antcount*2 >numbersCount)
@@ -55,8 +54,7 @@ int result(int *value){
                 return 1;
 
         //jesli doszlo do konca, a nie wynik!
-        if( i>=numbersCount-1){
-//		printf("Ejj\n");
+        if( i>=numbersCount){
                 return -1;
         }
 
@@ -111,22 +109,16 @@ void tokenService(int rcvToken, int tasksNum) {
     }
 }
 
-//rturn array of ints
+
 int* getHalfTasks(Item** head,int *count){
         //Trzymaj glowe
         Item*tmp=*head;
-
         *count=listCount(*head);
-
         //Gdy nie mam czym sie podzielic
-        if(*count<=1) {
-            *count = 0;
-            return 0;
-        }
-
+        if(*count<=1)
+                return 0;
 
         *count=(*count)/2;
-
         int *values=(int*)malloc(sizeof(int)*(*count));
 
         int i=0;
@@ -135,15 +127,17 @@ int* getHalfTasks(Item** head,int *count){
                 Item* item=listTakeAt(head,i+1);
                 if(item!=0){
                         //kopiuj
-                        *(values+i*numbersCount)=*(item->val);
+                        int j=0;
+                        for(j=0;j<numbersCount;j++)
+                                *(values+i*numbersCount+j)=item->val[j];
                         free(item->val);
                         free(item);
                 }
                 i++;
         }
-//        printf("getHalf: COUNT %d I %d\n",*count,i);
         return values;
 }
+
 
 //Return new head
 Item* tasksToItems(int* data,int count){
