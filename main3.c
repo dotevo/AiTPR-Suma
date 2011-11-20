@@ -19,23 +19,16 @@ int result(int *value){
 	int count	=0;
 	int antcount	=0;
 	//Sumuj az nie trafisz na -1 lub koniec
-//	printf("\n TESTUJE: ");
 	while(i<numbersCount && value[i]!=-1){
 		//printf("n: %d v: %d\n",numbers[i],value[i]);
 		sum	+=numbers[i]*value[i];
 		count	+=value[i];
 		antcount+=value[i]==0?1:0;		
-//		printf("%d,",value[i]);
 		i++;
 	}
-//	printf("\n");
-
-
-//	printf("sumka %d liczba %d:%d antyliczba %d i %d\n",sum,count,numbersCount,antcount,i);
 
 	//Sprawdzanie czy zakres nie zostal przekroczony
 	if( sum*2 > numbersSum || count*2 >numbersCount || antcount*2 > numbersCount){
-//		printf("nie ma szans\n");
 		return -1;
 	}
 
@@ -73,7 +66,9 @@ int* getHalfTasks(Item** head,int *count){
                 Item* item=listTakeAt(head,i+1);
                 if(item!=0){
                         //kopiuj
-                        *(values+i*numbersCount)=*(item->val);
+			int j=0;
+			for(j=0;j<numbersCount;j++)
+	                        *(values+i*numbersCount+j)=item->val[j];
                         free(item->val);
                         free(item);
                 }
@@ -181,9 +176,20 @@ int main( int argc, char **argv ){
 		}
 		else if(n==1){
 			//Podziel zadania na pol
-//			int count=0;
-//			printf("%d, %d\n",count,listCount(head));
-//			int*a=getHalfTasks(&head,&count);
+			int count=0;
+			printf("%d, %d\n",count,listCount(head));
+			int*a=getHalfTasks(&head,&count);
+			printf("%d, %d\n",count,listCount(head));
+			int zzz=0;
+			int zzz2=0;
+			for(zzz=0;zzz<count;zzz++){
+				printf("Zadanie:");
+				for(zzz2=0;zzz2<numbersCount;zzz2++){
+					printf("%d,",a[zzz*count+zzz2]);
+				}
+				printf("\n");
+			}
+
 //			printf("%d, %d\n",count,listCount(head));
 //			printf("TaskToItems");
 //			Item*head2=tasksToItems(a,count);
