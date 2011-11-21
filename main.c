@@ -257,7 +257,7 @@ int main(int argc, char ** argv) {
 		}
                 else if(status.MPI_TAG == TASKS_REQUEST) // prosba o zadanie
                 {
-                    printf("%d received request from %d.\n", rank, status.MPI_SOURCE);
+                    //printf("%d received request from %d.\n", rank, status.MPI_SOURCE);
                     int tasksToSendNum = 0;
                     MPI_Isend(&tasksToSendNum, 1, MPI_INT, status.MPI_SOURCE, TASKS_NUMBER, MPI_COMM_WORLD, &request);
                 }
@@ -298,7 +298,7 @@ int main(int argc, char ** argv) {
                     }
                     else if(status.MPI_TAG == TASKS_REQUEST) // prosba o zadanie
                     {
-                        printf("%d received request from %d.\n", rank, status.MPI_SOURCE);
+                        //printf("%d received request from %d.\n", rank, status.MPI_SOURCE);
                         int tasksToSendNum = 0;
                         MPI_Isend(&tasksToSendNum, 1, MPI_INT, status.MPI_SOURCE, TASKS_NUMBER, MPI_COMM_WORLD, &request);
         	    }
@@ -417,6 +417,8 @@ int main(int argc, char ** argv) {
                         }
                     }
                     free(tasksToSend);
+
+                    tasksNum -= tasksToSendNum;
                 }
                 else if(status.MPI_TAG == TOKEN) // token
                 {
@@ -428,7 +430,7 @@ int main(int argc, char ** argv) {
                     finished = 1;
                 }
             }
-	}
+        }
         if(rank == 0 && tasksNum == 0 && tokenSent != 1 && finished != 1) // 0 nie ma zadan - rozpoczyna rozsylanie tokena
 	{
             printf("0 sent token\n");
